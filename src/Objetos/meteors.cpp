@@ -87,7 +87,7 @@ namespace app
 				canons[i].rec.height = 24;
 				canons[i].angle = -90;
 
-				spriteFM = LoadTexture("res/assets/machines.png");
+				spriteFM = LoadTexture("res/assets/machines2.png");
 				spriteFMS = LoadTexture("res/assets/shoot2.png");
 
 				canons[i].timer = 0.0f;

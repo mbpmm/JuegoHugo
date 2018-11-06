@@ -27,6 +27,8 @@ namespace app
 		static Texture2D backTexture;
 		static Image backImage2;
 		static Texture2D backTexture2;
+		static Texture2D backTexture3;
+		static Texture2D backTexture4;
 
 		static Rectangle frameRec;
 		static float currentFrame;
@@ -39,6 +41,18 @@ namespace app
 
 		static float framesCounter2;
 		static float framesSpeed2;
+
+		static Rectangle frameRec3;
+		static float currentFrame3;
+
+		static float framesCounter3;
+		static float framesSpeed3;
+
+		static Rectangle frameRec4;
+		static float currentFrame4;
+
+		static float framesCounter4;
+		static float framesSpeed4;
 
 		//Boton pausa
 
@@ -62,6 +76,8 @@ namespace app
 
 			backImage = LoadImage("res/assets/parallax.png");
 			backImage2 = LoadImage("res/assets/parallax2.png");
+			backTexture3 = LoadTexture("res/assets/fog.png");
+			backTexture4 = LoadTexture("res/assets/back3.png");
 
 			//init boton pausa
 			botonPausa1.x = GetScreenWidth()*0.96f;
@@ -88,6 +104,18 @@ namespace app
 
 			framesCounter2 = 0;
 			framesSpeed2 = 0.001f;
+
+			frameRec3 = { 0.0f, 0.0f, (float)backTexture3.width, (float)backTexture3.height };
+			currentFrame3 = 0;
+
+			framesCounter3 = 0;
+			framesSpeed3 = 0.001f;
+
+			frameRec4 = { 0.0f, 0.0f, (float)backTexture4.width, (float)backTexture4.height };
+			currentFrame4 = 0;
+
+			framesCounter4 = 0;
+			framesSpeed4 = 0.001f;
 
 			score = 0;
 			
@@ -146,6 +174,28 @@ namespace app
 
 				frameRec2.x = (float)currentFrame2;
 			}
+			framesCounter3 += GetFrameTime();
+
+			if (framesCounter3 >= framesSpeed3)
+			{
+				framesCounter3 = 0;
+				currentFrame3 += 0.5;
+
+				if (currentFrame3 > 1280) currentFrame3 = 0;
+
+				frameRec3.x = (float)currentFrame3;
+			}
+			framesCounter4 += GetFrameTime();
+
+			if (framesCounter4 >= framesSpeed4)
+			{
+				framesCounter4 = 0;
+				currentFrame4 += 0.09;
+
+				if (currentFrame4 > 1280) currentFrame4 = 0;
+
+				frameRec4.x = (float)currentFrame4;
+			}
 
 			UpdateSpaceship();
 			UpdateMeteors();
@@ -161,6 +211,8 @@ namespace app
 		{
 			ClearBackground(BLANK);
 			DrawTextureRec(backTexture, frameRec, { 0,0 }, WHITE);
+			DrawTextureRec(backTexture4, frameRec4, { 0,0 }, WHITE);
+			DrawTextureRec(backTexture3, frameRec3, { 0,0 }, GRAY);
 			DrawSpaceship();
 			DrawMeteors();
 			DrawTextureRec(backTexture2, frameRec2, { 0,0 }, WHITE);
@@ -213,6 +265,7 @@ namespace app
 			UnloadSpaceship();
 			UnloadTexture(backTexture);
 			UnloadTexture(backTexture2);
+			UnloadTexture(backTexture3);
 			UnloadImage(backImage);
 			UnloadImage(backImage2);
 		}

@@ -71,7 +71,8 @@ namespace app
 			{
 				bombs[i].active = false;
 				bombs[i].radius = 10.0f;
-				bombs[i].position = ship.position;
+				bombs[i].position.x = ship.position.x+30;
+				bombs[i].position.y = ship.position.y + 20;
 				bombs[i].speed = { 100.0f,300.0f };
 				bombs[i].tag = i + 1;
 				bombs[i].color = RED;
@@ -84,7 +85,8 @@ namespace app
 			{
 				if (!bombs[i].active)
 				{
-					bombs[i].position = ship.position;
+					bombs[i].position.x = ship.position.x + 30;
+					bombs[i].position.y = ship.position.y + 20;
 				}
 				else
 				{
@@ -151,7 +153,7 @@ namespace app
 		{
 			shootSound = LoadSound("res/assets/shoot.wav");
 			shootImage = LoadImage("res/assets/shoot.png");
-			shipImage = LoadImage("res/assets/spriteSheet.png");
+			shipImage = LoadImage("res/assets/spriteSheet3.png");
 
 
 			shipTexture = LoadTextureFromImage(shipImage);
