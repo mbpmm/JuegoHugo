@@ -40,6 +40,49 @@ namespace app
 			int tag;
 		};
 
+		struct Boss
+		{
+			Rectangle rec;
+			Vector2 position;
+			float angle;
+			Shoot shoot;
+			Shoot super;
+			float timer;
+			float shootSpeed;
+			float superSpeed;
+			float shootDirection;
+			Vector2 speed;
+			bool active;
+			int vida;
+		};
+
+		struct Coin
+		{
+			Rectangle rec;
+			Vector2 position;
+			Vector2 speed;
+			int radius;
+			bool active;
+		};
+
+		static const int maxCoins = 15;
+		static Coin coins[maxCoins];
+		static Texture2D coinTexture;
+		static Rectangle frameRec;
+		static int currentFrame;
+
+		static float framesCounter;
+		static float framesSpeed;
+
+		static const int maxBoss = 1;
+		static Boss boss;
+		static Texture2D bossTexture;
+		static Texture2D spriteBS;
+		static Texture2D spriteSS;
+
+		static Vector2 vDir2;
+		static int destroyedBoss;
+
 		static const int maxBigMeteors = 6;
 		static Meteor bigMeteor[maxBigMeteors];
 
@@ -76,6 +119,7 @@ namespace app
 
 		//Sonidos 
 		static Sound explosionSound;
+		static Sound coinSound;
 		bool pauseSoundExplosion=false;
 
 		static bool init;
@@ -89,20 +133,304 @@ namespace app
 		static void initEnemies();
 		static void updateEnemies();
 		static void drawEnemies();
-		static const float enemiesDistance = 400 * 6 / maxEnemies;
-		const int posEnemiesY = 695;
+		static const float enemiesDistance = 450;
+
+		static void initBoss();
+		static void updateBoss();
+		static void drawBoss();
+
+		static void initCoin();
+		static void updateCoin();
+		static void drawCoin();
+
+		static void initCoin()
+		{
+			coinSound = LoadSound("res/assets/coin.wav");
+			coins[0].position = { (float)GetRandomValue(GetScreenWidth(),GetScreenWidth()),(float)GetRandomValue(0 + 100, GetScreenHeight() - 100) };
+			for (int i = 0; i < maxCoins; i++)
+			{
+				coins[i].active = true;
+				coins[i].radius = 16;
+				coins[i].speed = { 300.0f * 6 / maxEnemies,0.0f };
+				if (i != 0)
+				{
+					coins[i].position = { coins[i - 1].position.x + 2400,(float)GetRandomValue(0 + 100, GetScreenHeight() - 100) };
+				}
+				//-----------------------------------
+
+				coinTexture = LoadTexture("res/assets/collectablesprite.png");
+
+				frameRec = { 0.0f, 0.0f, (float)coinTexture.width, (float)224 / 7 };
+				currentFrame = 0;
+
+				framesCounter = 0;
+				framesSpeed = 0.8f;
+
+				coins[i].rec.x = coins[i].position.x;
+				coins[i].rec.y = coins[i].position.y;
+				coins[i].rec.width = coinTexture.width;
+				coins[i].rec.height = coinTexture.height/7;
+
+			}
+		}
+
+		static void updateCoin()
+		{
+			for (int i = 0; i < maxCoins; i++)
+			{
+				framesCounter += GetFrameTime();
+
+				if (framesCounter >= framesSpeed)
+				{
+					framesCounter = 0;
+					currentFrame++;
+
+					if (currentFrame > 7) currentFrame = 0;
+
+					frameRec.y = (float)currentFrame*(float)coinTexture.height / 7;
+				}
+				if (coins[i].active)
+				{
+					coins[i].position.x -= coins[i].speed.x*GetFrameTime();
+					if (coins[i].position.x < -coins[i].rec.width * 2)
+					{
+						coins[i].active = false;
+					}
+					//--------------------------------------
+					coins[i].rec.x = coins[i].position.x;
+					coins[i].rec.y = coins[i].position.y;
+
+					if (CheckCollisionCircles({ ship.collider.x, ship.collider.y }, ship.collider.z, coins[i].position, coins[i].radius))
+					{
+						if (!pauseSoundExplosion)
+						{
+							PlaySound(coinSound);
+						}
+						else
+						{
+							PauseSound(coinSound);
+						}
+						coins[i].active = false;
+					}
+				}
+			}
+		}
+
+		static void drawCoin()
+		{
+			for (int i = 0; i < maxCoins; i++)
+			{
+				if (coins[i].active)
+				{
+					DrawTextureRec(coinTexture, frameRec, coins[i].position, WHITE);
+				}
+			}
+		}
+
+		static void initBoss()
+		{
+			destroyedBoss = 0;
+			
+			boss.vida = 25;
+			boss.active = true;
+			boss.speed = { 200.0f * 6 / maxEnemies,250 };
+			
+
+			bossTexture = LoadTexture("res/assets/boss.png");
+			spriteBS = LoadTexture("res/assets/shoot3.png");
+			spriteSS = LoadTexture("res/assets/super.png");
+
+			boss.position = { (float)GetScreenWidth(),(float)GetScreenHeight() / 2 - bossTexture.height/2 };
+
+			boss.rec.x = boss.position.x;
+			boss.rec.y = boss.position.y;
+			boss.rec.width = bossTexture.width;
+			boss.rec.height = bossTexture.height;
+
+			boss.timer = 0.0f;
+			boss.shoot.active = false;
+			boss.shoot.position.x = boss.rec.x;
+			boss.shoot.position.y = boss.rec.y;
+			boss.shoot.rotation = boss.angle;
+			boss.shootSpeed = 900.0f;
+			boss.shoot.radius = 3;
+
+			boss.super.active = false;
+			boss.super.position.x = boss.rec.x;
+			boss.super.position.y = boss.rec.y;
+			boss.super.rotation = boss.angle;
+			boss.superSpeed = 700.0f;
+			boss.super.radius = 8;
+
+		}
+
+		static void updateBossShoots()
+		{
+			int angleFixed = 90;
+
+			if (boss.active)
+			{
+				boss.shoot.rotation = boss.angle + angleFixed;
+
+				if (!boss.shoot.active)
+				{
+					boss.timer += GetFrameTime();
+				}
+				if (boss.timer > 0.5f)
+				{
+					boss.shoot.active = true;
+					boss.timer = 0;
+				}
+				if (!boss.shoot.active)
+				{
+					boss.shootDirection = boss.shoot.rotation;
+					boss.shoot.position.x = boss.rec.x + bossTexture.width / 2;
+					boss.shoot.position.y = boss.rec.y + bossTexture.height / 2;
+				}
+				else
+				{
+					boss.shoot.position.x += sin(boss.shootDirection*DEG2RAD)*boss.shootSpeed*GetFrameTime();
+					boss.shoot.position.y -= cos(boss.shootDirection*DEG2RAD)*boss.shootSpeed*GetFrameTime();
+				}
+				if (boss.shoot.position.x<0 || boss.shoot.position.x>GetScreenWidth() ||
+					boss.shoot.position.y<0 || boss.shoot.position.y>GetScreenHeight())
+				{
+					boss.shoot.active = false;
+				}
+
+				if (CheckCollisionCircles({ ship.collider.x, ship.collider.y }, ship.collider.z, boss.shoot.position, boss.shoot.radius))
+				{
+					gameOver = true;
+					victory = false;
+					currentScreen = GameOver;
+				}
+
+				boss.super.rotation =angleFixed;
+
+				if (!boss.super.active)
+				{
+					boss.timer += GetFrameTime();
+				}
+				if (boss.timer > 0.5f)
+				{
+					boss.super.active = true;
+					boss.timer = 0;
+				}
+				if (!boss.super.active)
+				{
+					boss.super.position.x = boss.rec.x + bossTexture.width / 2;
+					boss.super.position.y = boss.rec.y + bossTexture.height / 2;
+				}
+				else
+				{
+					boss.super.position.x -= boss.superSpeed*GetFrameTime();
+				}
+				if (boss.super.position.x<0 || boss.super.position.x>GetScreenWidth() )
+				{
+					boss.super.active = false;
+				}
+
+				if (CheckCollisionCircles({ ship.collider.x, ship.collider.y }, ship.collider.z, boss.super.position, boss.super.radius))
+				{
+					gameOver = true;
+					victory = false;
+					currentScreen = GameOver;
+				}
+			}
+		}
+
+		static void updateBoss()
+		{
+
+			if (boss.active)
+			{
+				boss.position.x -= boss.speed.x*GetFrameTime();
+				boss.position.y -= boss.speed.y*GetFrameTime();
+
+				if (boss.position.y > GetScreenHeight() - 150)
+				{
+					boss.speed.y *= -1;
+				}
+				else if (boss.position.y < 0 + 150)
+				{
+					boss.speed.y *= -1;
+				}
+				if (boss.position.x < GetScreenWidth()-400)
+				{
+					boss.position.x = GetScreenWidth() - 400;
+				}
+				//--------------------------------------
+				boss.rec.x = boss.position.x;
+				boss.rec.y = boss.position.y;
+
+				vDir2.x = ship.position.x - boss.rec.x;
+
+				vDir2.y = ship.position.y - boss.rec.y;
+
+				boss.angle = atan2(vDir2.y, vDir2.x)*RAD2DEG;
+				//----------------------------------------
+
+
+			}
+
+			updateBossShoots();
+
+			for (int i = 0; i < shipMaxShoots; i++)
+			{
+				if ((shoot[i].active))
+				{
+
+					if (boss.active && CheckCollisionCircleRec(shoot[i].position, shoot[i].radius, boss.rec))
+					{
+						if (!pauseSoundExplosion)
+						{
+							PlaySound(explosionSound);
+						}
+						else
+						{
+							PauseSound(explosionSound);
+						}
+						shoot[i].active = false;
+						boss.vida--;
+						if (boss.vida <= 0)
+						{
+							boss.active = false;
+							destroyedBoss++;
+						}
+					}
+					
+
+				}
+			}
+		}
+
+		static void drawBoss()
+		{
+			if (boss.active)
+			{
+				DrawTexture(spriteBS, boss.shoot.position.x - boss.shoot.radius * 3,
+					boss.shoot.position.y - boss.shoot.radius * 3, WHITE);
+				DrawTexture(spriteSS, boss.super.position.x - boss.super.radius * 2,
+					boss.super.position.y - boss.super.radius * 2, WHITE);
+			//	DrawCircle(boss.super.position.x, boss.super.position.y, boss.super.radius, WHITE);
+				//DrawCircle(boss.shoot.position.x, boss.shoot.position.y, boss.shoot.radius, WHITE);
+				DrawTexture(bossTexture, boss.position.x, boss.position.y, WHITE);
+
+			}
+
+		}
 
 		static void initEnemies()
 		{
 			destroyedEnemies = 0;
-			enemies[0].position = { (float)GetRandomValue(GetScreenWidth(),GetScreenWidth() ),(float) GetRandomValue(0+enemyTexture.height+100, GetScreenHeight()- enemyTexture.height-100) };
+			enemies[0].position = { 1280,(float) GetRandomValue(0+150, GetScreenHeight()-150) };
 			for (int i = 0; i < maxEnemies; i++)
 			{
 				enemies[i].active = true;
-				enemies[i].speed = { 300.0f * 6 / maxEnemies,0.0f };
+				enemies[i].speed = { 400.0f * 6 / maxEnemies,0.0f };
 				if (i != 0)
 				{
-					enemies[i].position = { enemies[i - 1].position.x + enemiesDistance,(float)GetRandomValue(0 + enemyTexture.height+100, GetScreenHeight() - enemyTexture.height-100) };
+					enemies[i].position = { enemies[i - 1].position.x + enemiesDistance,(float)GetRandomValue(0 +150, GetScreenHeight()-150) };
 				}
 				enemies[i].tag = i;
 				//-----------------------------------
@@ -124,7 +452,7 @@ namespace app
 				enemies[i].shoot.radius = 3;
 			}
 		}
-		static int lastEnemyX;
+		static float lastEnemyX;
 
 		static void checkLastEnemy()
 		{
@@ -188,13 +516,13 @@ namespace app
 		{
 			for (int i = 0; i < maxEnemies; i++)
 			{
+
 				if (enemies[i].active)
 				{
 					enemies[i].position.x -= enemies[i].speed.x*GetFrameTime();
 					if (enemies[i].position.x < -enemies[i].rec.width * 2)
 					{
-						checkLastEnemy();
-						enemies[i].position.x = lastEnemyX + enemiesDistance;
+						enemies[i].position.x = 1280;
 					}
 					//--------------------------------------
 					enemies[i].rec.x = enemies[i].position.x;
@@ -210,6 +538,7 @@ namespace app
 
 				}
 			}
+
 			updateEnemyShoots();
 
 			for (int i = 0; i < shipMaxShoots; i++)
@@ -231,7 +560,6 @@ namespace app
 							shoot[i].active = false;
 							enemies[a].active = false;
 							destroyedEnemies++;
-							a = maxEnemies;
 						}
 					}
 				}
@@ -246,7 +574,7 @@ namespace app
 				{
 					DrawTexture(spriteES, enemies[i].shoot.position.x- enemies[i].shoot.radius*3,
 						enemies[i].shoot.position.y- enemies[i].shoot.radius*3, WHITE);
-					DrawCircle(enemies[i].shoot.position.x, enemies[i].shoot.position.y, enemies[i].shoot.radius, WHITE);
+					//DrawCircle(enemies[i].shoot.position.x, enemies[i].shoot.position.y, enemies[i].shoot.radius, WHITE);
 					DrawTexture(enemyTexture, enemies[i].position.x, enemies[i].position.y, WHITE);
 					/*DrawTexturePro(enemyTexture, { 0.0f,0.0f,(float)enemyTexture.width / 2,(float)enemyTexture.height },
 						{ enemies[i].position.x,enemies[i].position.y,(float)enemyTexture.width / 2,(float)enemyTexture.height },
@@ -470,6 +798,8 @@ namespace app
 			bigMeteorScalePos = { (bigMeteorScale*meteorImage.width) / 2 ,(bigMeteorScale*meteorImage.height) / 2 };
 			initFloorMeteors();
 			initEnemies();
+			initBoss();
+			initCoin();
 		}
 
 		void UpdateMeteors()
@@ -550,15 +880,20 @@ namespace app
 			{
 				updateEnemies();
 			}
+
+			if (destroyedMeteorsCount == maxBigMeteors && destroyedFloorMeteorsCount == maxFloorMeteors && destroyedEnemies == maxEnemies)
+			{
+				updateBoss();
+			}
 			
 
-			if (destroyedMeteorsCount == maxBigMeteors && destroyedFloorMeteorsCount==maxFloorMeteors && destroyedEnemies==maxEnemies)
+			if (destroyedMeteorsCount == maxBigMeteors && destroyedFloorMeteorsCount==maxFloorMeteors && destroyedEnemies==maxEnemies && destroyedBoss==maxBoss)
 			{
 				victory = true;
 				gameOver = true;
 				currentScreen = GameOver;
 			}
-
+			updateCoin();
 		}
 
 		void DrawMeteors()
@@ -577,7 +912,12 @@ namespace app
 			{
 				drawEnemies();
 			}
-			
+
+			if (destroyedMeteorsCount == maxBigMeteors && destroyedFloorMeteorsCount == maxFloorMeteors && destroyedEnemies == maxEnemies)
+			{
+				drawBoss();
+			}
+			drawCoin();
 		}
 
 		void UnloadMeteors()
@@ -588,6 +928,7 @@ namespace app
 			UnloadTexture(spriteFM);
 			UnloadTexture(spriteFMS);
 			UnloadTexture(enemyTexture);
+			UnloadTexture(bossTexture);
 		}
 
 		void ResetMeteors()
@@ -629,6 +970,8 @@ namespace app
 			bigMeteorScalePos = { (bigMeteorScale*meteorImage.width) / 2 ,(bigMeteorScale*meteorImage.height) / 2 };
 			initFloorMeteors();
 			initEnemies();
+			initBoss();
+			initCoin();
 		}
 	}
 }

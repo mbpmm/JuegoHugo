@@ -3,5 +3,4 @@
 int main()
 {
 	app::ExecuteGame();
-	return 0;
 }

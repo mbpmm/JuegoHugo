@@ -21,11 +21,7 @@ namespace app
 		static char text5[] = "GRAD10S V 1.1";
 		static char text6[] = "Sonidos realizados con Bfxr";
 		static char text7[] = "Imagenes y assets:";
-		static char text8[] = "-'[M13] Cave Tileset', Autor: Beast, https://opengameart.org/content/m13-cave-tileset";
-		static char text9[] = "-'STARLINK BATTLE FOR ATLAS SPACESHIP SPACE BATTLE', sin autor, https://anoncraft.com/starlink-battle-for-atlas-spaceship-space-battle-21216/";
-		static char text10[] = "-'Azul Rojo Galaxy Fantasía Espacio fondo de pantalla', sin autor, http://www.hdfondos.eu/preview/65932/1024/768";
-		static char text11[] = "-Sin titulo, Tony Rivera, https://www.clarin.com/deportes/futbol-internacional/diego-maradona-despues-triunfo-dorados-vendo-humo-vendo-trabajo_0_vGCzhB6lP.html";
-		static char text12[] = "-La nave, los asteroides y el disparo fueron creados con Adobe Illustrator y las imagenes modificadas con Adobe Photoshop";
+		static char text8[] = "Gonzalo Barrionuevo";
 		static int sizeText = 0;
 		static int sizeText2 = 0;
 		static int sizeText3 = 0;
@@ -83,16 +79,8 @@ namespace app
 			text5PositionY = GetScreenHeight() * 0.05;
 			text7PositionX= halfScreen - MeasureText(text7, sizeText) / 2;
 			text7PositionY= GetScreenHeight() * 0.45;
-			text8PositionX = halfScreen - MeasureText(text8, sizeText3) / 2;
+			text8PositionX = halfScreen - MeasureText(text8, sizeText) / 2;
 			text8PositionY = GetScreenHeight() * 0.53;
-			text9PositionX = halfScreen - MeasureText(text9, sizeText3) / 2;
-			text9PositionY = GetScreenHeight() * 0.58;
-			text10PositionX = halfScreen - MeasureText(text10, sizeText3) / 2;
-			text10PositionY = GetScreenHeight() * 0.63;
-			text11PositionX = GetScreenWidth() / 2 - MeasureText(text11, sizeText3) / 2;
-			text11PositionY = GetScreenHeight() * 0.68;
-			text12PositionX = halfScreen - MeasureText(text12, sizeText3) / 2;
-			text12PositionY = GetScreenHeight() * 0.73;
 
 			colorRect1 = PURPLE;
 
@@ -129,11 +117,8 @@ namespace app
 			DrawText(text5, text5PositionX, text5PositionY, sizeText, GRAY);
 			DrawText(text6, text6PositionX, text6PositionY, sizeText, GRAY);
 			DrawText(text7, text7PositionX, text7PositionY, sizeText, GRAY);
-			DrawText(text8, text8PositionX, text8PositionY, sizeText3, GRAY);
-			DrawText(text9, text9PositionX, text9PositionY, sizeText3, GRAY);
-			DrawText(text10, text10PositionX, text10PositionY, sizeText3, GRAY);
-			DrawText(text11, text11PositionX, text11PositionY, sizeText3, GRAY);
-			DrawText(text12, text12PositionX, text12PositionY, sizeText3, GRAY);
+			DrawText(text8, text8PositionX, text8PositionY, sizeText, GRAY);
+
 		}
 	}
 }
